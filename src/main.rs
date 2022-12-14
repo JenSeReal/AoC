@@ -5,6 +5,10 @@ use std::fs::read_to_string;
 
 mod day_1;
 mod day_10;
+mod day_11;
+mod day_12;
+mod day_13;
+mod day_14;
 mod day_2;
 mod day_3;
 mod day_4;
@@ -51,9 +55,25 @@ fn main() {
   // let res = day_9::part_1(&input_day_9);
   // let res = day_9::part_2(&input_day_9);
 
-  let input_day_10 = read_to_string("assets/day_10").unwrap();
-  let res = day_10::part_1(&input_day_10);
-  let res = day_10::part_2(&input_day_10);
+  // let input_day_10 = read_to_string("assets/day_10").unwrap();
+  // let res = day_10::part_1(&input_day_10);
+  // let res = day_10::part_2(&input_day_10);
+
+  // let input_day_11 = read_to_string("assets/day_11").unwrap();
+  // let res = day_11::part_1(&input_day_11);
+  // let res = day_11::part_2(&input_day_11);
+
+  // let input_day_12 = read_to_string("assets/day_12").unwrap();
+  // let res = day_12::part_1(&input_day_12);
+  // let res = day_12::part_2(&input_day_12);
+
+  // let input_day_13 = read_to_string("assets/day_13").unwrap();
+  // let res = day_13::part_1(&input_day_13);
+  // let res = day_13::part_2(&input_day_13);
+
+  let input_day_14 = read_to_string("assets/day_14").unwrap();
+  // let res = day_14::part_1(&input_day_14);
+  let res = day_14::part_2(&input_day_14);
 
   println!("{}", res);
 }

@@ -54,7 +54,6 @@ fn parse(input: &str) -> IResult<&str, (Vec<Vec<Container>>, Vec<Move>)> {
   let container_stacks = container_rows.iter().rev().fold(
     vec![vec![]; container_rows[0].len()],
     |mut acc: Vec<Vec<Container>>, container_row| {
-      dbg!(acc.clone());
       for (idx, container) in container_row.iter().enumerate() {
         if container.is_some() {
           acc[idx].push(container.clone().unwrap())
