@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, fs::read_to_string};
 
 fn parse_part_1(input: &str) -> impl Iterator<Item = (HashSet<char>, HashSet<char>)> + '_ {
   input
@@ -46,6 +46,14 @@ pub(crate) fn part_2(input: &str) -> u32 {
     })
     .map(priority)
     .sum::<u32>()
+}
+
+fn main() {
+  let input = read_to_string("assets/day_3").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

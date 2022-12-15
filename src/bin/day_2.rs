@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, convert::Infallible, str::FromStr};
+use std::{cmp::Ordering, convert::Infallible, fs::read_to_string, str::FromStr};
 
 #[derive(Debug)]
 enum Outcome {
@@ -116,6 +116,14 @@ pub(crate) fn part_2(input: &str) -> u32 {
       player_two.result(&player_one) + player_two as u32
     })
     .sum()
+}
+
+fn main() {
+  let input = read_to_string("assets/day_2").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

@@ -1,11 +1,11 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, fs::read_to_string};
 
 use nom::{
   branch::alt,
   bytes::complete::tag,
   character::complete::{self, newline},
   combinator::{all_consuming, map},
-  multi::{many_m_n, separated_list0, separated_list1},
+  multi::{separated_list0, separated_list1},
   sequence::{delimited, separated_pair},
   IResult,
 };
@@ -89,6 +89,14 @@ pub(crate) fn part_2(input: &str) -> usize {
     .positions(|packet| packet == &divider_packet_2 || packet == &divider_packet_6)
     .map(|pos| pos + 1)
     .product()
+}
+
+fn main() {
+  let input = read_to_string("assets/day_13").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

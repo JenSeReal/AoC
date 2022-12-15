@@ -1,3 +1,5 @@
+use std::fs::read_to_string;
+
 fn parse(input: &str) -> impl Iterator<Item = u32> + '_ {
   input.split("\n\n").map(|inventory| {
     inventory
@@ -16,6 +18,14 @@ pub(crate) fn part_2(input: &str) -> u32 {
 
   inventories.sort_by(|a, b| b.cmp(a));
   inventories.iter().take(3).sum()
+}
+
+fn main() {
+  let input = read_to_string("assets/day_1").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

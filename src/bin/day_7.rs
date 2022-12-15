@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, fs::read_to_string, path::PathBuf};
 
 use nom::{
   branch::alt,
@@ -7,8 +7,6 @@ use nom::{
   sequence::{preceded, separated_pair},
   Finish, IResult,
 };
-
-const THRESHOLD: usize = 100000;
 
 #[derive(Debug)]
 enum Entry {
@@ -125,6 +123,14 @@ pub(crate) fn part_2(input: &str) -> u64 {
     .filter(|size| unused + size >= needed)
     .min()
     .unwrap()
+}
+
+fn main() {
+  let input = read_to_string("assets/day_7").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

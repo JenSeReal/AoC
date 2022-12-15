@@ -1,8 +1,4 @@
-enum Field {
-  Start,
-  End,
-  Field,
-}
+use std::fs::read_to_string;
 
 fn successors((x, y): (usize, usize), grid: &[Vec<u8>]) -> Vec<((usize, usize), u32)> {
   let rows = grid.len();
@@ -114,6 +110,14 @@ pub(crate) fn part_2(input: &str) -> u32 {
     .map(|path| path.1)
     .min()
     .unwrap()
+}
+
+fn main() {
+  let input = read_to_string("assets/day_12").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

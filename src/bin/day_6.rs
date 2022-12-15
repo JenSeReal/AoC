@@ -1,3 +1,5 @@
+use std::fs::read_to_string;
+
 fn solve_with_marker(input: &str, marker: usize) -> usize {
   input
     .as_bytes()
@@ -18,6 +20,14 @@ pub(crate) fn part_1(input: &str) -> usize {
 
 pub(crate) fn part_2(input: &str) -> usize {
   solve_with_marker(input, 14)
+}
+
+fn main() {
+  let input = read_to_string("assets/day_6").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

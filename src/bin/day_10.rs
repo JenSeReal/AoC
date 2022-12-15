@@ -1,12 +1,12 @@
-use std::{num::ParseIntError, ops::AddAssign};
+use std::fs::read_to_string;
 
 use nom::{
   branch::alt,
-  bytes::complete::{tag, take_while},
-  character::complete::{self, char, digit1, line_ending, not_line_ending, one_of},
-  combinator::{map, map_res, recognize},
-  multi::{many0, many1, separated_list1},
-  sequence::{preceded, terminated},
+  bytes::complete::tag,
+  character::complete::{self, line_ending},
+  combinator::map,
+  multi::separated_list1,
+  sequence::preceded,
   IResult,
 };
 
@@ -14,15 +14,6 @@ use nom::{
 enum Instruction {
   Addx(i32),
   Noop,
-}
-
-impl Instruction {
-  fn as_cycle(&self) -> i32 {
-    match self {
-      Instruction::Addx(_) => 2,
-      Instruction::Noop => 1,
-    }
-  }
 }
 
 fn parse_addx(input: &str) -> IResult<&str, Instruction> {
@@ -149,6 +140,14 @@ pub(crate) fn part_2(input: &str) -> String {
   let (_, instructions) = parse(input).unwrap();
   let mut screen = Crt::<CRT_SIZE>::new();
   screen.draw(&instructions)
+}
+
+fn main() {
+  let input = read_to_string("assets/day_10").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, fs::read_to_string};
 
 fn parse(input: &str) -> Vec<((i32, i32), usize)> {
   input
@@ -51,6 +51,14 @@ pub(crate) fn part_1(input: &str) -> usize {
 pub(crate) fn part_2(input: &str) -> usize {
   let motions = parse(input);
   moves::<10>(&motions)
+}
+
+fn main() {
+  let input = read_to_string("assets/day_9").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

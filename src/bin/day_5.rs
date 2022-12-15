@@ -1,3 +1,5 @@
+use std::fs::read_to_string;
+
 use nom::{
   branch::alt,
   bytes::complete::tag,
@@ -109,6 +111,14 @@ pub(crate) fn part_2(input: &str) -> String {
   });
 
   ids
+}
+
+fn main() {
+  let input = read_to_string("assets/day_5").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

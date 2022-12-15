@@ -1,3 +1,5 @@
+use std::fs::read_to_string;
+
 fn parse(input: &str) -> Vec<Vec<u32>> {
   let y = input.lines().count();
 
@@ -95,6 +97,14 @@ pub(crate) fn part_2(input: &str) -> usize {
     })
     .max()
     .unwrap()
+}
+
+fn main() {
+  let input = read_to_string("assets/day_8").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

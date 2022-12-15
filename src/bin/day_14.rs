@@ -1,30 +1,10 @@
-use std::{
-  collections::{BTreeMap, VecDeque},
-  fmt::Display,
-};
+use std::{collections::VecDeque, fmt::Display, fs::read_to_string};
 
-use nom::{
-  character::complete::newline, combinator::all_consuming, multi::separated_list1, IResult,
-};
-
-const START: (usize, usize) = (500, 0);
 const X_MAX: usize = 1000;
 
-enum Direction {
-  Left,
-  Right,
-  Down,
-}
+enum Direction {}
 
 impl Direction {
-  fn as_number(&self) -> isize {
-    match self {
-      Direction::Left => -1,
-      Direction::Right => 1,
-      Direction::Down => 0,
-    }
-  }
-
   fn as_slice() -> [isize; 3] {
     [0, -1, 1]
   }
@@ -73,21 +53,21 @@ fn parse(input: &str) -> ((usize, usize), usize, Vec<Vec<Material>>) {
   let x_min = rock_formations
     .iter()
     .flatten()
-    .map(|(x, y)| x)
+    .map(|(x, _)| x)
     .min()
     .unwrap();
 
   let x_max = rock_formations
     .iter()
     .flatten()
-    .map(|(x, y)| x)
+    .map(|(x, _)| x)
     .max()
     .unwrap();
 
   let y_max = rock_formations
     .iter()
     .flatten()
-    .map(|(x, y)| y)
+    .map(|(_, y)| y)
     .max()
     .unwrap();
 
@@ -117,7 +97,7 @@ fn parse(input: &str) -> ((usize, usize), usize, Vec<Vec<Material>>) {
   )
 }
 
-fn print(grid: &Vec<Vec<Material>>) {
+fn _print(grid: &Vec<Vec<Material>>) {
   for row in grid {
     for col in row {
       print!("{col}");
@@ -128,7 +108,7 @@ fn print(grid: &Vec<Vec<Material>>) {
 }
 
 pub(crate) fn part_1(input: &str) -> u32 {
-  let ((x_min, x_max), y_max, mut grid) = parse(input);
+  let ((_, x_max), y_max, mut grid) = parse(input);
   let mut resting = 0;
   grid[0][500] = Material::SandSource;
 
@@ -164,7 +144,7 @@ pub(crate) fn part_1(input: &str) -> u32 {
 }
 
 pub(crate) fn part_2(input: &str) -> u32 {
-  let ((x_min, x_max), y_max, mut grid) = parse(input);
+  let ((_, _), y_max, mut grid) = parse(input);
   let floor = y_max + 2;
   grid.push(vec![Material::Air; X_MAX]);
   grid.push(vec![Material::Rock; X_MAX]);
@@ -190,6 +170,14 @@ pub(crate) fn part_2(input: &str) -> u32 {
   }
 
   resting
+}
+
+fn main() {
+  let input = read_to_string("assets/day_14").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

@@ -1,13 +1,13 @@
-use std::{cell::RefCell, collections::VecDeque, fmt::Debug, ops::Range, rc::Rc};
+use std::{cell::RefCell, fmt::Debug, fs::read_to_string, ops::Range, rc::Rc};
 
 use nom::{
   branch::alt,
   bytes::complete::tag,
-  character::complete::{self, line_ending, multispace0, newline},
-  combinator::{all_consuming, map, opt},
-  multi::{many_m_n, separated_list1},
-  sequence::{delimited, pair, preceded, separated_pair, terminated},
-  Finish, IResult,
+  character::complete::{self, line_ending, multispace0},
+  combinator::{map, opt},
+  multi::separated_list1,
+  sequence::{delimited, preceded, separated_pair},
+  IResult,
 };
 
 #[derive(Debug)]
@@ -181,7 +181,7 @@ fn parse_throw_to(input: &str) -> IResult<&str, (usize, usize)> {
 }
 
 fn parse_monkey(input: &str) -> IResult<&str, Monkey<impl Fn(u64) -> u64, impl Fn(u64) -> bool>> {
-  let (input, id) = preceded(
+  let (input, _) = preceded(
     delimited(tag("Monkey "), complete::u64, tag(":")),
     line_ending,
   )(input)?;
@@ -246,6 +246,14 @@ pub(crate) fn part_2(input: &str) -> usize {
   inspections.sort();
 
   inspections.iter().rev().take(2).product()
+}
+
+fn main() {
+  let input = read_to_string("assets/day_11").unwrap();
+  let part_1 = part_1(&input);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]

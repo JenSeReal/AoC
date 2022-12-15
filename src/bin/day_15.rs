@@ -1,6 +1,5 @@
-use std::fs::read_to_string;
-#[allow(dead_code)]
 use std::{collections::BTreeMap, fmt::Display};
+use std::{collections::HashSet, fs::read_to_string};
 
 use nom::{
   bytes::complete::tag,
@@ -42,7 +41,7 @@ impl Default for State {
 #[derive(Debug, Clone)]
 struct Grid {
   grid: BTreeMap<(isize, isize), (isize, isize)>,
-  covered: BTreeMap<(isize, isize), State>,
+  covered: Vec<[isize; 2]>,
 }
 
 impl Grid {
@@ -53,34 +52,102 @@ impl Grid {
 
 impl From<BTreeMap<(isize, isize), (isize, isize)>> for Grid {
   fn from(grid: BTreeMap<(isize, isize), (isize, isize)>) -> Self {
-    let covered = grid
-      .iter()
-      .fold(BTreeMap::new(), |mut covered, (sensor, beacon)| {
-        covered.insert(*sensor, State::Sensor);
-        covered.insert(*beacon, State::Beacon);
-
-        covered
-      });
-    Self { grid, covered }
+    Self {
+      grid,
+      covered: vec![],
+    }
   }
 }
 
 impl Display for Grid {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    let x_min = self.covered.iter().map(|((x, _), _)| x).min().unwrap();
-    let x_max = self.covered.iter().map(|((x, _), _)| x).max().unwrap();
+    let grid_x_min = self
+      .grid
+      .iter()
+      .map(|(sensor, beacon)| sensor.0.min(beacon.0))
+      .min();
 
-    let y_min = self.covered.iter().map(|((_, y), _)| y).min().unwrap();
-    let y_max = self.covered.iter().map(|((_, y), _)| y).max().unwrap();
+    let grid_x_max = self
+      .grid
+      .iter()
+      .map(|(sensor, beacon)| sensor.0.max(beacon.0))
+      .max();
 
-    let x_correction = x_min * -1;
-    let y_correction = y_min * -1;
+    let grid_y_min = self
+      .grid
+      .iter()
+      .map(|(sensor, beacon)| sensor.1.min(beacon.1))
+      .min();
+
+    let grid_y_max = self
+      .grid
+      .iter()
+      .map(|(sensor, beacon)| sensor.1.max(beacon.1))
+      .max();
+
+    let x_covered_min = self.covered.iter().map(|[x, _]| x).min();
+    let x_covered_max = self.covered.iter().map(|[x, _]| x).max();
+    let y_covered_min = self.covered.iter().map(|[_, y]| y).min();
+    let y_covered_max = self.covered.iter().map(|[_, y]| y).max();
+
+    let x_correction = match (grid_x_min, x_covered_min) {
+      (None, Some(x)) => *x,
+      (Some(x), None) => x,
+      (Some(x), Some(other)) => x.min(*other),
+      _ => 0,
+    } * -1;
+    let y_correction = match (grid_y_min, x_covered_min) {
+      (None, Some(x)) => *x,
+      (Some(x), None) => x,
+      (Some(x), Some(other)) => x.min(*other),
+      _ => 0,
+    } * -1;
+
+    let x_min = match (grid_x_min, x_covered_min) {
+      (None, Some(x)) => *x,
+      (Some(x), None) => x,
+      (Some(x), Some(other)) => x.min(*other),
+      _ => 0,
+    };
+
+    let x_max = match (grid_x_max, x_covered_max) {
+      (None, Some(x)) => *x,
+      (Some(x), None) => x,
+      (Some(x), Some(other)) => x.max(*other),
+      _ => 0,
+    };
+
+    let y_min = match (grid_y_min, y_covered_min) {
+      (None, Some(y)) => *y,
+      (Some(y), None) => y,
+      (Some(y), Some(other)) => y.min(*other),
+      _ => 0,
+    };
+
+    let y_max = match (grid_y_max, y_covered_max) {
+      (None, Some(y)) => *y,
+      (Some(y), None) => y,
+      (Some(y), Some(other)) => y.max(*other),
+      _ => 0,
+    };
 
     let mut grid =
       vec![vec![State::Air; (x_max - x_min) as usize + 1]; (y_max - y_min) as usize + 1];
 
-    self.covered.iter().for_each(|((x, y), state)| {
-      grid[(y + y_correction) as usize][(x + x_correction) as usize] = state.clone();
+    self.grid.iter().for_each(|(sensor, beacon)| {
+      grid[(sensor.1 + y_correction) as usize][(sensor.0 + x_correction) as usize] = State::Sensor;
+      grid[(beacon.1 + y_correction) as usize][(beacon.0 + x_correction) as usize] = State::Beacon;
+    });
+
+    self.covered.iter().enumerate().for_each(|(row, [x, y])| {
+      let x = (x + x_correction) as usize;
+      let y = (y + y_correction) as usize;
+      for i in x..=y {
+        match grid[row][i] {
+          State::Air => grid[row][i] = State::Covered,
+          _ => (),
+        }
+      }
     });
 
     for row in grid.iter() {
@@ -127,40 +194,120 @@ fn parse(input: &str) -> Grid {
 
 pub(crate) fn part_1(input: &str, row: usize) -> usize {
   let mut grid = parse(input);
+  let mut known_beacon = HashSet::new();
 
   for (sensor, beacon) in grid.grid.iter() {
-    let start_x = sensor.0;
-    let start_y = sensor.1;
     let distance = Grid::distance(sensor, beacon) as isize;
 
-    for i in 0..=distance {
-      let mut amount = distance;
+    let offset = distance - (sensor.1 - row as isize).abs();
+    // ignore sensor
+    if offset < 0 {
+      continue;
+    }
 
-      for j in 0..=amount - i {
-        grid.covered.entry((start_x + j, start_y - i)).or_default();
-        grid.covered.entry((start_x - j, start_y - i)).or_default();
-        grid.covered.entry((start_x + j, start_y + i)).or_default();
-        grid.covered.entry((start_x - j, start_y + i)).or_default();
-        amount -= 1
+    let x_min = sensor.0 - offset;
+    let x_max = sensor.0 + offset;
+
+    grid.covered.push([x_min, x_max]);
+
+    if beacon.1 == row as isize {
+      known_beacon.insert(beacon.0);
+    }
+  }
+
+  grid.covered.sort();
+
+  let mut merged = vec![];
+
+  for [min, max] in grid.covered.into_iter() {
+    if merged.is_empty() {
+      merged.push([min, max]);
+      continue;
+    }
+
+    let [_, merged_max] = merged.last().unwrap().clone();
+
+    if min > merged_max + 1 {
+      merged.push([min, max]);
+      continue;
+    }
+
+    merged.last_mut().unwrap()[1] = merged_max.max(max);
+  }
+
+  let mut no_beacon = HashSet::new();
+
+  for [min, max] in merged {
+    for i in min..=max {
+      no_beacon.insert(i);
+    }
+  }
+
+  no_beacon.len() - known_beacon.len()
+}
+
+pub(crate) fn part_2(input: &str, tuning_frequencies: usize) -> usize {
+  let mut grid = parse(input);
+  for test_frequency in 0..=tuning_frequencies {
+    println!("{test_frequency}");
+    grid.covered.clear();
+    for (sensor, beacon) in grid.grid.iter() {
+      let distance = Grid::distance(sensor, beacon) as isize;
+
+      let offset = distance - (sensor.1 - test_frequency as isize).abs();
+      // ignore sensor
+      if offset < 0 {
+        continue;
+      }
+
+      let x_min = sensor.0 - offset;
+      let x_max = sensor.0 + offset;
+
+      grid.covered.push([x_min, x_max]);
+    }
+
+    grid.covered.sort();
+
+    let mut merged = vec![];
+
+    for [min, max] in grid.covered.iter() {
+      if merged.is_empty() {
+        merged.push([*min, *max]);
+        continue;
+      }
+
+      let [_, merged_max] = merged.last().unwrap().clone();
+
+      if *min > merged_max + 1 {
+        merged.push([*min, *max]);
+        continue;
+      }
+
+      merged.last_mut().unwrap()[1] = merged_max.max(*max);
+    }
+
+    let mut x = 0;
+    for [min, max] in merged {
+      if x < min {
+        return x as usize * 4_000_000 + test_frequency;
+      } else {
+        x = max + 1
+      }
+      if x > tuning_frequencies as isize {
+        break;
       }
     }
   }
 
-  grid
-    .covered
-    .into_iter()
-    .filter(|((_, y), state)| *y == row as isize && *state == State::Covered)
-    .count()
-}
-
-pub(crate) fn part_2(input: &str) -> u32 {
   todo!()
 }
 
 fn main() {
   let input = read_to_string("assets/day_15").unwrap();
   let part_1 = part_1(&input, 2_000_000);
-  println!("{}", part_1);
+  println!("Part 1: {}", part_1);
+  let part_2 = part_2(&input, 4_000_000);
+  println!("Part 2: {}", part_2);
 }
 
 #[cfg(test)]
@@ -191,9 +338,8 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3
   }
 
   #[test]
-  #[ignore = "later"]
   fn test_solve_part_2() {
-    let res = part_2(TEST_INPUT);
-    assert_eq!(res, 0)
+    let res = part_2(TEST_INPUT, 20);
+    assert_eq!(res, 56000011)
   }
 }
