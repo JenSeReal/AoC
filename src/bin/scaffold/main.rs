@@ -4,6 +4,7 @@
 use std::fs::read_to_string;
 
 const DAY: usize = 16;
+const INPUT: &str = include_str!("input");
 
 pub(crate) fn part_1(input: &str) -> u32 {
   todo!()
@@ -14,18 +15,15 @@ pub(crate) fn part_2(input: &str) -> u32 {
 }
 
 fn main() {
-  let input = read_to_string(format!("assets/day_{}", DAY)).unwrap();
-  let part_1 = part_1(&input);
-  println!("Part 1: {}", part_1);
-  let part_2 = part_2(&input);
-  println!("Part 2: {}", part_2);
+  println!("Part 1: {}", part_1(&INPUT));
+  println!("Part 2: {}", part_2(&INPUT));
 }
 
 #[cfg(test)]
 pub(crate) mod tests {
   use super::*;
 
-  const TEST_INPUT: &str = "";
+  const TEST_INPUT: &str = include_str!("sample");
 
   #[test]
   fn test_solve_part_1() {
