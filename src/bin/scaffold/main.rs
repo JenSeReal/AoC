@@ -1,9 +1,5 @@
-#![allow(dead_code)]
-#![allow(unused)]
+#![allow(unused_variables)]
 
-use std::fs::read_to_string;
-
-const DAY: usize = 16;
 const INPUT: &str = include_str!("input");
 
 pub(crate) fn part_1(input: &str) -> u32 {
