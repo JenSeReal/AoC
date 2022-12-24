@@ -1,5 +1,3 @@
-#![allow(unused_variables)]
-
 use std::{
   cmp::Ordering,
   collections::{BTreeMap, HashMap},
@@ -20,8 +18,7 @@ fn parse(input: &str) -> BTreeMap<&str, Yell> {
   input
     .trim()
     .lines()
-    .enumerate()
-    .fold(BTreeMap::new(), |mut actions, (i, l)| {
+    .fold(BTreeMap::new(), |mut actions, l| {
       let (id, yell) = l.split_once(": ").unwrap();
       let split = yell.trim().split_whitespace().collect::<Vec<_>>();
       let yell = match split[..] {
