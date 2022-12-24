@@ -177,6 +177,12 @@ impl Display for Cove {
 }
 
 impl Cove {
+  fn calculate_password(&self) -> usize {
+    1000 * (self.current_position[1] + 1)
+      + 4 * (self.current_position[0] + 1)
+      + usize::from(self.current_direction)
+  }
+
   fn calculate_new_position(&self, direction: &Direction, [x, y]: [usize; 2]) -> [usize; 2] {
     let (x_dim, y_dim) = (self.tile_matrix[y].len(), self.tile_matrix.len());
     match direction {
@@ -194,6 +200,10 @@ impl Cove {
       .push((self.current_position, self.current_direction))
   }
 
+  fn current_direction(&mut self, new_direction: Direction) {
+    self.current_direction = new_direction
+  }
+
   fn current_position(&mut self, [x, y]: [usize; 2]) {
     self.current_position = [x, y];
     self
@@ -201,7 +211,7 @@ impl Cove {
       .push((self.current_position, self.current_direction))
   }
 
-  fn change_position(&mut self, amount: usize) {
+  fn change_position(&mut self, amount: usize, wrap: impl Fn(&Self) -> ([usize; 2], Direction)) {
     for _ in 0..amount {
       let [x, y] = self.calculate_new_position(&self.current_direction, self.current_position);
       match self
@@ -213,17 +223,60 @@ impl Cove {
         Tile::Free => self.current_position([x, y]),
         Tile::Blocked => break,
         Tile::Void => {
-          let [new_x, new_y] = self.wrap();
+          let ([new_x, new_y], direction) = wrap(self);
           if self.tile_matrix[new_y][new_x] == Tile::Blocked {
             break;
           }
-          self.current_position([new_x, new_y])
+          self.current_position([new_x, new_y]);
+          self.current_direction(direction);
         }
       }
     }
   }
 
-  fn wrap(&self) -> [usize; 2] {
+  fn wrap_cube<const N: usize>(&self) -> ([usize; 2], Direction) {
+    let [x, y] = self.current_position;
+
+    let (qx, qy, new_direction) = match (x / N, y / N, self.current_direction) {
+      (1, 0, Direction::Up) => (0, 3, Direction::Right),
+      (1, 0, Direction::Left) => (0, 2, Direction::Right),
+      (2, 0, Direction::Up) => (0, 3, Direction::Up),
+      (2, 0, Direction::Right) => (1, 2, Direction::Left),
+      (2, 0, Direction::Down) => (1, 1, Direction::Left),
+      (1, 1, Direction::Right) => (2, 0, Direction::Up),
+      (1, 1, Direction::Left) => (0, 2, Direction::Down),
+      (0, 2, Direction::Up) => (1, 1, Direction::Right),
+      (0, 2, Direction::Left) => (1, 0, Direction::Right),
+      (1, 2, Direction::Right) => (2, 0, Direction::Left),
+      (1, 2, Direction::Down) => (0, 3, Direction::Left),
+      (0, 3, Direction::Right) => (1, 2, Direction::Up),
+      (0, 3, Direction::Down) => (2, 0, Direction::Down),
+      (0, 3, Direction::Left) => (1, 0, Direction::Down),
+      _ => {
+        dbg!(y, x, y / N, x / N, self.current_direction);
+        unreachable!()
+      }
+    };
+
+    let (dx, dy) = (x % N, y % N);
+    let i = match self.current_direction {
+      Direction::Right => dy,
+      Direction::Left => N - 1 - dy,
+      Direction::Up => dx,
+      Direction::Down => N - 1 - dx,
+    };
+
+    let (nx, ny) = match new_direction {
+      Direction::Right => (0, i),
+      Direction::Left => (N - 1, N - 1 - i),
+      Direction::Up => (i, N - 1),
+      Direction::Down => (N - 1 - i, 0),
+    };
+
+    ([qx * N + nx, qy * N + ny], new_direction)
+  }
+
+  fn wrap(&self) -> ([usize; 2], Direction) {
     let [mut x, mut y] =
       self.calculate_new_position(&self.current_direction, self.current_position);
     while *self
@@ -236,14 +289,18 @@ impl Cove {
       [x, y] = self.calculate_new_position(&self.current_direction, [x, y]);
     }
 
-    [x, y]
+    ([x, y], self.current_direction)
   }
 
-  fn walk(&mut self, instructions: &Vec<Instruction>) {
+  fn walk(
+    &mut self,
+    instructions: &Vec<Instruction>,
+    wrap: &impl Fn(&Self) -> ([usize; 2], Direction),
+  ) {
     for instruction in instructions.iter() {
       match instruction {
         Instruction::Right | Instruction::Left => self.change_direction(instruction),
-        Instruction::Move(amount) => self.change_position(*amount),
+        Instruction::Move(amount) => self.change_position(*amount, wrap),
       }
     }
   }
@@ -280,20 +337,19 @@ fn parse(input: &str) -> (Cove, Vec<Instruction>) {
 
 fn part_1(input: &str) -> usize {
   let (mut cove, instructions) = parse(input);
-  cove.walk(&instructions);
-
-  1000 * (cove.current_position[1] + 1)
-    + 4 * (cove.current_position[0] + 1)
-    + usize::from(cove.current_direction)
+  cove.walk(&instructions, &Cove::wrap);
+  cove.calculate_password()
 }
 
-fn part_2(_input: &str) -> usize {
-  todo!()
+fn part_2<const N: usize>(input: &str) -> usize {
+  let (mut cove, instructions) = parse(input);
+  cove.walk(&instructions, &Cove::wrap_cube::<N>);
+  cove.calculate_password()
 }
 
 fn main() {
   println!("Part 1: {}", part_1(INPUT));
-  println!("Part 2: {}", part_2(INPUT));
+  println!("Part 2: {}", part_2::<50>(INPUT));
 }
 
 #[cfg(test)]
@@ -309,9 +365,8 @@ pub(crate) mod tests {
   }
 
   #[test]
-  #[ignore = "later"]
   fn test_solve_part_2() {
-    let res = part_2(TEST_INPUT);
-    assert_eq!(res, 0)
+    let res = part_2::<4>(TEST_INPUT);
+    assert_eq!(res, 5031)
   }
 }
