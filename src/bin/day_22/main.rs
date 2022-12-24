@@ -253,7 +253,7 @@ impl Cove {
       (0, 3, Direction::Down) => (2, 0, Direction::Down),
       (0, 3, Direction::Left) => (1, 0, Direction::Down),
       _ => {
-        dbg!(y, x, y / N, x / N, self.current_direction);
+        dbg!(x / N, y / N, self.current_direction);
         unreachable!()
       }
     };
