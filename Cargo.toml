@@ -10,3 +10,6 @@ itertools = "0.10.5"
 nom = "7.1"
 num = "0.4.0"
 pathfinding = "4"
+strum_macros = "0.24"
+
+strum = { version = "0.24", features = ["derive"] }
