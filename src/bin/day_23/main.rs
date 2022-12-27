@@ -193,8 +193,28 @@ pub(crate) fn part_1(input: &str) -> usize {
     .count()
 }
 
-pub(crate) fn part_2(input: &str) -> u32 {
-  todo!()
+pub(crate) fn part_2(input: &str) -> usize {
+  let mut grove = Grove::from_str(input.trim()).unwrap();
+  let mut end = 0;
+
+  for t in 0.. {
+    let proposals = grove.proposals(t);
+
+    let mut moved = false;
+    for (pos, proposal) in proposals {
+      if proposal.len() == 1 {
+        moved = true;
+        grove.0.remove(&proposal[0]);
+        grove.0.insert(pos);
+      }
+    }
+    if !moved {
+      end = t + 1;
+      break;
+    }
+  }
+
+  end
 }
 
 fn main() {
@@ -215,9 +235,8 @@ pub(crate) mod tests {
   }
 
   #[test]
-  #[ignore = "later"]
   fn test_solve_part_2() {
     let res = part_2(TEST_INPUT);
-    assert_eq!(res, 0)
+    assert_eq!(res, 20)
   }
 }
